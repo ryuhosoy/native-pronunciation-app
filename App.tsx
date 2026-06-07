@@ -23,6 +23,11 @@ import { TriangleIcon, WaveIcon } from './src/components/Icons';
 import { colors } from './src/constants/theme';
 import { LESSONS, Phase } from './src/data/lessons';
 import { checkAnswer, getDisplayCorrectAnswer } from './src/lib/checkAnswer';
+import {
+  playCorrectSound,
+  playIncorrectSound,
+  stopFeedbackSoundPlayback,
+} from './src/lib/feedbackSound';
 import { configureAudio, playAudio, stopAudio } from './src/lib/openaiSpeech';
 
 export default function App() {
@@ -55,6 +60,7 @@ export default function App() {
     void configureAudio();
     return () => {
       void stopAudio();
+      stopFeedbackSoundPlayback();
     };
   }, []);
 
@@ -81,12 +87,16 @@ export default function App() {
   }, [isPlaying, lesson.spokenText]);
 
   const showAnswer = () => {
-    setIsCorrect(checkAnswer(userInput, lesson));
+    const correct = checkAnswer(userInput, lesson);
+    setIsCorrect(correct);
+    if (correct) playCorrectSound();
+    else playIncorrectSound();
     setPhase('answer');
   };
 
   const goNext = () => {
     void stopAudio();
+    stopFeedbackSoundPlayback();
     setIndex((i) => (i + 1) % LESSONS.length);
     setPhase('listen');
     setUserInput('');
