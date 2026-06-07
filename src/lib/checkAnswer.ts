@@ -1,10 +1,15 @@
 import type { Lesson } from '../data/lessons';
 
+// 比較時は , . ! ? など句読点をすべて無視する
+const PUNCTUATION =
+  /[.,!?;:"`~\-—–…、。，．！？：；「」『』（）\[\](){}\/\\|@#$%^&*+=<>]/g;
+
 export function normalize(text: string): string {
   return text
+    .normalize('NFKC')
     .toLowerCase()
-    .replace(/[''']/g, "'")
-    .replace(/[^\w\s']/g, '')
+    .replace(/[''`´]/g, "'")
+    .replace(PUNCTUATION, '')
     .replace(/\s+/g, ' ')
     .trim();
 }
