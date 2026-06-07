@@ -22,6 +22,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { TriangleIcon, WaveIcon } from './src/components/Icons';
 import { colors } from './src/constants/theme';
 import { LESSONS, Phase } from './src/data/lessons';
+import { checkAnswer, getDisplayCorrectAnswer } from './src/lib/checkAnswer';
 import { configureAudio, playAudio, stopAudio } from './src/lib/openaiSpeech';
 
 export default function App() {
@@ -30,6 +31,7 @@ export default function App() {
   const [userInput, setUserInput] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
   const [speechError, setSpeechError] = useState<string | null>(null);
+  const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
   const inputRef = useRef<TextInput>(null);
 
   const lesson = LESSONS[index];
@@ -78,13 +80,17 @@ export default function App() {
     }
   }, [isPlaying, lesson.spokenText]);
 
-  const showAnswer = () => setPhase('answer');
+  const showAnswer = () => {
+    setIsCorrect(checkAnswer(userInput, lesson));
+    setPhase('answer');
+  };
 
   const goNext = () => {
     void stopAudio();
     setIndex((i) => (i + 1) % LESSONS.length);
     setPhase('listen');
     setUserInput('');
+    setIsCorrect(null);
     setIsPlaying(false);
   };
 
@@ -154,7 +160,8 @@ export default function App() {
                   editable={phase === 'input'}
                   style={[
                     styles.input,
-                    phase === 'answer' && styles.inputAnswer,
+                    phase === 'answer' && isCorrect === true && styles.inputCorrect,
+                    phase === 'answer' && isCorrect === false && styles.inputIncorrect,
                   ]}
                   selectionColor={colors.primary}
                   returnKeyType="done"
@@ -171,7 +178,7 @@ export default function App() {
                       pressed && styles.buttonPressed,
                     ]}
                   >
-                    <Text style={styles.primaryButtonText}>答えを見る</Text>
+                    <Text style={styles.primaryButtonText}>回答する</Text>
                   </Pressable>
                 )}
               </Animated.View>
@@ -179,10 +186,46 @@ export default function App() {
 
             {phase === 'answer' && (
               <Animated.View entering={FadeInDown.delay(50).duration(250)} style={styles.answerSection}>
+                <View
+                  style={[
+                    styles.resultBadge,
+                    isCorrect ? styles.resultBadgeCorrect : styles.resultBadgeIncorrect,
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.resultBadgeText,
+                      isCorrect ? styles.resultBadgeTextCorrect : styles.resultBadgeTextIncorrect,
+                    ]}
+                  >
+                    {isCorrect ? '✓ 正解' : '✗ 不正解'}
+                  </Text>
+                </View>
+
+                <View style={styles.comparisonCard}>
+                  <View>
+                    <Text style={styles.answerLabel}>あなたの回答</Text>
+                    <Text style={styles.userAnswerText}>
+                      {userInput.trim() || '（未入力）'}
+                    </Text>
+                  </View>
+
+                  <View style={styles.dividerRow}>
+                    <View style={styles.dividerLine} />
+                  </View>
+
+                  <View>
+                    <Text style={styles.answerLabel}>正解</Text>
+                    <Text style={styles.casualText}>
+                      {getDisplayCorrectAnswer(lesson)}
+                    </Text>
+                  </View>
+                </View>
+
                 <View style={styles.answerCard}>
                   <View>
                     <Text style={styles.answerLabel}>元の文</Text>
-                    <Text style={styles.formalText}>{lesson.formal}</Text>
+                    <Text style={styles.formalText}>{lesson.spokenText}</Text>
                   </View>
 
                   <View style={styles.dividerRow}>
@@ -331,8 +374,48 @@ const styles = StyleSheet.create({
     borderColor: colors.white10,
     color: colors.white90,
   },
-  inputAnswer: {
-    borderColor: colors.primaryBorder,
+  inputCorrect: {
+    borderColor: '#4ade80',
+  },
+  inputIncorrect: {
+    borderColor: '#ff6b6b',
+  },
+  resultBadge: {
+    borderRadius: 12,
+    paddingVertical: 10,
+    alignItems: 'center',
+    borderWidth: 1,
+  },
+  resultBadgeCorrect: {
+    backgroundColor: 'rgba(74,222,128,0.1)',
+    borderColor: 'rgba(74,222,128,0.3)',
+  },
+  resultBadgeIncorrect: {
+    backgroundColor: 'rgba(255,107,107,0.1)',
+    borderColor: 'rgba(255,107,107,0.3)',
+  },
+  resultBadgeText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  resultBadgeTextCorrect: {
+    color: '#4ade80',
+  },
+  resultBadgeTextIncorrect: {
+    color: '#ff6b6b',
+  },
+  comparisonCard: {
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
+    gap: 16,
+    backgroundColor: colors.white04,
+    borderWidth: 1,
+    borderColor: colors.white07,
+  },
+  userAnswerText: {
+    fontSize: 17,
+    color: colors.white85,
   },
   primaryButton: {
     width: '100%',
