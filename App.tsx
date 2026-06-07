@@ -10,7 +10,6 @@ import {
   View,
 } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
-import * as Speech from 'expo-speech';
 import Animated, {
   FadeIn,
   FadeInDown,
@@ -23,12 +22,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { TriangleIcon, WaveIcon } from './src/components/Icons';
 import { colors } from './src/constants/theme';
 import { LESSONS, Phase } from './src/data/lessons';
+import { configureAudio, playAudio, stopAudio } from './src/lib/openaiSpeech';
 
 export default function App() {
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>('listen');
   const [userInput, setUserInput] = useState('');
   const [isPlaying, setIsPlaying] = useState(false);
+  const [speechError, setSpeechError] = useState<string | null>(null);
   const inputRef = useRef<TextInput>(null);
 
   const lesson = LESSONS[index];
@@ -49,34 +50,38 @@ export default function App() {
   }, [phase]);
 
   useEffect(() => {
+    void configureAudio();
     return () => {
-      void Speech.stop();
+      void stopAudio();
     };
   }, []);
 
-  const speak = useCallback(() => {
+  const speak = useCallback(async () => {
     if (isPlaying) return;
 
-    Speech.stop();
-    setIsPlaying(true);
+    setSpeechError(null);
 
-    Speech.speak(lesson.spokenText, {
-      language: 'en-US',
-      rate: 1.05,
-      onStart: () => setIsPlaying(true),
-      onDone: () => {
-        setIsPlaying(false);
-        setPhase((current) => (current === 'listen' ? 'input' : current));
-      },
-      onStopped: () => setIsPlaying(false),
-      onError: () => setIsPlaying(false),
-    });
+    try {
+      await playAudio(
+        lesson.spokenText,
+        () => setIsPlaying(true),
+        () => {
+          setIsPlaying(false);
+          setPhase((current) => (current === 'listen' ? 'input' : current));
+        },
+      );
+    } catch (error) {
+      setIsPlaying(false);
+      setSpeechError(
+        error instanceof Error ? error.message : '音声の再生に失敗しました',
+      );
+    }
   }, [isPlaying, lesson.spokenText]);
 
   const showAnswer = () => setPhase('answer');
 
   const goNext = () => {
-    Speech.stop();
+    void stopAudio();
     setIndex((i) => (i + 1) % LESSONS.length);
     setPhase('listen');
     setUserInput('');
@@ -133,7 +138,9 @@ export default function App() {
             </View>
 
             {phase === 'listen' && (
-              <Text style={styles.hint}>タップして再生</Text>
+              <Text style={[styles.hint, speechError && styles.hintError]}>
+                {speechError ?? 'タップして再生'}
+              </Text>
             )}
 
             {(phase === 'input' || phase === 'answer') && (
@@ -306,6 +313,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontSize: 14,
     color: colors.white25,
+  },
+  hintError: {
+    color: '#ff6b6b',
   },
   inputSection: {
     gap: 12,

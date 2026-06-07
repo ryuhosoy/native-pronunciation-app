@@ -5,7 +5,8 @@
   "dependencies": {
     "babel-preset-expo": "~56.0.0",
     "expo": "~56.0.9",
-    "expo-speech": "~56.0.3",
+    "expo-audio": "~56.0.11",
+    "expo-file-system": "~56.0.7",
     "expo-status-bar": "~56.0.4",
     "react": "19.2.3",
     "react-native": "0.85.3",
