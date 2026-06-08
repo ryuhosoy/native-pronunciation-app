@@ -29,7 +29,12 @@ import {
   playIncorrectSound,
   stopFeedbackSoundPlayback,
 } from './src/lib/feedbackSound';
-import { configureAudio, playAudio, stopAudio } from './src/lib/openaiSpeech';
+import {
+  configureAudio,
+  hasCachedSpeech,
+  playAudio,
+  stopAudio,
+} from './src/lib/openaiSpeech';
 
 export default function App() {
   const [index, setIndex] = useState(0);
@@ -70,11 +75,14 @@ export default function App() {
     if (isLoadingSpeech || isPlaying) return;
 
     setSpeechError(null);
-    setIsLoadingSpeech(true);
+    if (!hasCachedSpeech(lesson.id)) {
+      setIsLoadingSpeech(true);
+    }
 
     try {
       await playAudio(
         lesson.spokenText,
+        lesson.id,
         () => {
           setIsLoadingSpeech(false);
           setIsPlaying(true);
@@ -91,7 +99,7 @@ export default function App() {
         error instanceof Error ? error.message : '音声の再生に失敗しました',
       );
     }
-  }, [isLoadingSpeech, isPlaying, lesson.spokenText]);
+  }, [isLoadingSpeech, isPlaying, lesson.id, lesson.spokenText]);
 
   const showAnswer = () => {
     const correct = checkAnswer(userInput, lesson);
@@ -177,7 +185,7 @@ export default function App() {
               </Pressable>
             </View>
 
-            {phase === 'listen' && (
+            {(phase === 'listen' || isLoadingSpeech || isPlaying) && (
               <Text style={[styles.hint, speechError && styles.hintError]}>
                 {listenHint}
               </Text>
