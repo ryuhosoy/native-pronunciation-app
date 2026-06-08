@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -34,6 +35,7 @@ export default function App() {
   const [index, setIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>('listen');
   const [userInput, setUserInput] = useState('');
+  const [isLoadingSpeech, setIsLoadingSpeech] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [speechError, setSpeechError] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
@@ -65,26 +67,31 @@ export default function App() {
   }, []);
 
   const speak = useCallback(async () => {
-    if (isPlaying) return;
+    if (isLoadingSpeech || isPlaying) return;
 
     setSpeechError(null);
+    setIsLoadingSpeech(true);
 
     try {
       await playAudio(
         lesson.spokenText,
-        () => setIsPlaying(true),
+        () => {
+          setIsLoadingSpeech(false);
+          setIsPlaying(true);
+        },
         () => {
           setIsPlaying(false);
           setPhase((current) => (current === 'listen' ? 'input' : current));
         },
       );
     } catch (error) {
+      setIsLoadingSpeech(false);
       setIsPlaying(false);
       setSpeechError(
         error instanceof Error ? error.message : '音声の再生に失敗しました',
       );
     }
-  }, [isPlaying, lesson.spokenText]);
+  }, [isLoadingSpeech, isPlaying, lesson.spokenText]);
 
   const showAnswer = () => {
     const correct = checkAnswer(userInput, lesson);
@@ -101,8 +108,17 @@ export default function App() {
     setPhase('listen');
     setUserInput('');
     setIsCorrect(null);
+    setIsLoadingSpeech(false);
     setIsPlaying(false);
   };
+
+  const listenHint = speechError
+    ? speechError
+    : isLoadingSpeech
+      ? '音声を準備しています...'
+      : isPlaying
+        ? '聞いてください'
+        : 'タップして再生';
 
   const progressStyle = useAnimatedStyle(() => ({
     width: `${progressWidth.value}%`,
@@ -142,20 +158,28 @@ export default function App() {
             <View style={styles.playButtonContainer}>
               <Pressable
                 onPress={speak}
-                disabled={isPlaying}
+                disabled={isLoadingSpeech || isPlaying}
                 style={({ pressed }) => [
                   styles.playButton,
-                  isPlaying ? styles.playButtonPlaying : styles.playButtonIdle,
-                  pressed && !isPlaying && styles.playButtonPressed,
+                  isPlaying || isLoadingSpeech
+                    ? styles.playButtonPlaying
+                    : styles.playButtonIdle,
+                  pressed && !isPlaying && !isLoadingSpeech && styles.playButtonPressed,
                 ]}
               >
-                {isPlaying ? <WaveIcon /> : <TriangleIcon />}
+                {isLoadingSpeech ? (
+                  <ActivityIndicator color={colors.white} size="small" />
+                ) : isPlaying ? (
+                  <WaveIcon />
+                ) : (
+                  <TriangleIcon />
+                )}
               </Pressable>
             </View>
 
             {phase === 'listen' && (
               <Text style={[styles.hint, speechError && styles.hintError]}>
-                {speechError ?? 'タップして再生'}
+                {listenHint}
               </Text>
             )}
 
