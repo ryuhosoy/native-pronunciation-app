@@ -22,8 +22,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { TriangleIcon, WaveIcon } from './src/components/Icons';
 import { colors } from './src/constants/theme';
+import { FREE_PLAY_LIMIT } from './src/constants/subscription';
 import { LESSONS, Phase } from './src/data/lessons';
 import { checkAnswer, getDisplayCorrectAnswer } from './src/lib/checkAnswer';
+import { getPlayCount, incrementPlayCount } from './src/lib/playLimit';
+import { configurePurchases, isPremiumUser, presentPaywall } from './src/lib/purchases';
 import {
   playCorrectSound,
   playIncorrectSound,
@@ -44,6 +47,8 @@ export default function App() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speechError, setSpeechError] = useState<string | null>(null);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
+  const [isPremium, setIsPremium] = useState(false);
+  const [playCount, setPlayCount] = useState(0);
   const inputRef = useRef<TextInput>(null);
 
   const lesson = LESSONS[index];
@@ -65,14 +70,34 @@ export default function App() {
 
   useEffect(() => {
     void configureAudio();
+    configurePurchases();
+    void (async () => {
+      const [premium, count] = await Promise.all([isPremiumUser(), getPlayCount()]);
+      setIsPremium(premium);
+      setPlayCount(count);
+    })();
     return () => {
       void stopAudio();
       stopFeedbackSoundPlayback();
     };
   }, []);
 
+  const hasReachedPlayLimit = !isPremium && playCount >= FREE_PLAY_LIMIT;
+  const remainingPlays = Math.max(0, FREE_PLAY_LIMIT - playCount);
+
+  const openPaywall = async () => {
+    const activated = await presentPaywall();
+    if (activated) {
+      setIsPremium(await isPremiumUser());
+    }
+  };
+
   const speak = useCallback(async () => {
     if (isLoadingSpeech || isPlaying) return;
+    if (hasReachedPlayLimit) {
+      openPaywall();
+      return;
+    }
 
     setSpeechError(null);
     if (!hasCachedSpeech(lesson.id)) {
@@ -83,9 +108,13 @@ export default function App() {
       await playAudio(
         lesson.spokenText,
         lesson.id,
-        () => {
+        async () => {
           setIsLoadingSpeech(false);
           setIsPlaying(true);
+          if (!isPremium) {
+            const count = await incrementPlayCount();
+            setPlayCount(count);
+          }
         },
         () => {
           setIsPlaying(false);
@@ -99,7 +128,7 @@ export default function App() {
         error instanceof Error ? error.message : '音声の再生に失敗しました',
       );
     }
-  }, [isLoadingSpeech, isPlaying, lesson.id, lesson.spokenText]);
+  }, [hasReachedPlayLimit, isLoadingSpeech, isPlaying, isPremium, lesson.id, lesson.spokenText]);
 
   const showAnswer = () => {
     const correct = checkAnswer(userInput, lesson);
@@ -110,6 +139,11 @@ export default function App() {
   };
 
   const goNext = () => {
+    if (hasReachedPlayLimit) {
+      openPaywall();
+      return;
+    }
+
     void stopAudio();
     stopFeedbackSoundPlayback();
     setIndex((i) => (i + 1) % LESSONS.length);
@@ -140,9 +174,16 @@ export default function App() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.topBar}>
-          <Text style={styles.counter}>
-            {index + 1} / {LESSONS.length}
-          </Text>
+          <View style={styles.topBarLeft}>
+            <Text style={styles.counter}>
+              {index + 1} / {LESSONS.length}
+            </Text>
+            {!isPremium && (
+              <Text style={styles.playLimit}>
+                残り {remainingPlays} 回
+              </Text>
+            )}
+          </View>
           <View style={styles.progressTrack}>
             <Animated.View style={[styles.progressFill, progressStyle]} />
           </View>
@@ -305,6 +346,7 @@ export default function App() {
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
+
     </SafeAreaView>
   );
 }
@@ -324,9 +366,16 @@ const styles = StyleSheet.create({
     paddingTop: 80,
     paddingBottom: 12,
   },
+  topBarLeft: {
+    gap: 2,
+  },
   counter: {
     color: colors.white20,
     fontSize: 13,
+  },
+  playLimit: {
+    color: colors.white35,
+    fontSize: 11,
   },
   progressTrack: {
     flex: 1,
