@@ -23,10 +23,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { TriangleIcon, WaveIcon } from './src/components/Icons';
 import { colors } from './src/constants/theme';
 import { FREE_PLAY_LIMIT } from './src/constants/subscription';
-import { LESSONS, Phase } from './src/data/lessons';
+import type { Lesson, Phase } from './src/types/lesson';
+import { fetchRandomLesson } from './src/lib/lessons';
 import { checkAnswer, getDisplayCorrectAnswer } from './src/lib/checkAnswer';
 import { getPlayCount, incrementPlayCount } from './src/lib/playLimit';
-import { configurePurchases, isPremiumUser, presentPaywall } from './src/lib/purchases';
+import {
+  configurePurchases,
+  isPremiumUser,
+  logCustomerInfo,
+  presentPaywall,
+} from './src/lib/purchases';
 import {
   playCorrectSound,
   playIncorrectSound,
@@ -40,7 +46,10 @@ import {
 } from './src/lib/openaiSpeech';
 
 export default function App() {
-  const [index, setIndex] = useState(0);
+  const [lesson, setLesson] = useState<Lesson | null>(null);
+  const [questionNumber, setQuestionNumber] = useState(1);
+  const [isLoadingLesson, setIsLoadingLesson] = useState(true);
+  const [lessonError, setLessonError] = useState<string | null>(null);
   const [phase, setPhase] = useState<Phase>('listen');
   const [userInput, setUserInput] = useState('');
   const [isLoadingSpeech, setIsLoadingSpeech] = useState(false);
@@ -50,12 +59,24 @@ export default function App() {
   const [isPremium, setIsPremium] = useState(false);
   const [playCount, setPlayCount] = useState(0);
   const inputRef = useRef<TextInput>(null);
-
-  const lesson = LESSONS[index];
   const progressWidth = useSharedValue(0);
 
-  const progressPercent =
-    ((index + (phase === 'answer' ? 1 : 0)) / LESSONS.length) * 100;
+  const progressPercent = phase === 'listen' ? 33 : phase === 'input' ? 66 : 100;
+
+  const loadLesson = useCallback(async (excludeId?: number) => {
+    setIsLoadingLesson(true);
+    setLessonError(null);
+    try {
+      const nextLesson = await fetchRandomLesson(excludeId);
+      setLesson(nextLesson);
+    } catch (error) {
+      setLessonError(
+        error instanceof Error ? error.message : '問題の取得に失敗しました',
+      );
+    } finally {
+      setIsLoadingLesson(false);
+    }
+  }, []);
 
   useEffect(() => {
     progressWidth.value = withTiming(progressPercent, { duration: 400 });
@@ -69,9 +90,14 @@ export default function App() {
   }, [phase]);
 
   useEffect(() => {
+    void loadLesson();
+  }, [loadLesson]);
+
+  useEffect(() => {
     void configureAudio();
     configurePurchases();
     void (async () => {
+      await logCustomerInfo('RevenueCat on launch');
       const [premium, count] = await Promise.all([isPremiumUser(), getPlayCount()]);
       setIsPremium(premium);
       setPlayCount(count);
@@ -93,7 +119,7 @@ export default function App() {
   };
 
   const speak = useCallback(async () => {
-    if (isLoadingSpeech || isPlaying) return;
+    if (!lesson || isLoadingSpeech || isPlaying) return;
     if (hasReachedPlayLimit) {
       openPaywall();
       return;
@@ -128,9 +154,10 @@ export default function App() {
         error instanceof Error ? error.message : '音声の再生に失敗しました',
       );
     }
-  }, [hasReachedPlayLimit, isLoadingSpeech, isPlaying, isPremium, lesson.id, lesson.spokenText]);
+  }, [hasReachedPlayLimit, isLoadingSpeech, isPlaying, isPremium, lesson]);
 
   const showAnswer = () => {
+    if (!lesson) return;
     const correct = checkAnswer(userInput, lesson);
     setIsCorrect(correct);
     if (correct) playCorrectSound();
@@ -138,7 +165,7 @@ export default function App() {
     setPhase('answer');
   };
 
-  const goNext = () => {
+  const goNext = async () => {
     if (hasReachedPlayLimit) {
       openPaywall();
       return;
@@ -146,12 +173,13 @@ export default function App() {
 
     void stopAudio();
     stopFeedbackSoundPlayback();
-    setIndex((i) => (i + 1) % LESSONS.length);
+    setQuestionNumber((n) => n + 1);
     setPhase('listen');
     setUserInput('');
     setIsCorrect(null);
     setIsLoadingSpeech(false);
     setIsPlaying(false);
+    await loadLesson(lesson?.id);
   };
 
   const listenHint = speechError
@@ -166,6 +194,37 @@ export default function App() {
     width: `${progressWidth.value}%`,
   }));
 
+  if (isLoadingLesson && !lesson) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar style="light" />
+        <View style={styles.centeredState}>
+          <ActivityIndicator color={colors.primary} />
+          <Text style={styles.stateText}>問題を読み込んでいます...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (lessonError && !lesson) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar style="light" />
+        <View style={styles.centeredState}>
+          <Text style={styles.stateError}>{lessonError}</Text>
+          <Pressable
+            onPress={() => void loadLesson()}
+            style={({ pressed }) => [styles.retryButton, pressed && styles.buttonPressed]}
+          >
+            <Text style={styles.retryButtonText}>再試行</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!lesson) return null;
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar style="light" />
@@ -175,9 +234,7 @@ export default function App() {
       >
         <View style={styles.topBar}>
           <View style={styles.topBarLeft}>
-            <Text style={styles.counter}>
-              {index + 1} / {LESSONS.length}
-            </Text>
+            <Text style={styles.counter}>第 {questionNumber} 問</Text>
             {!isPremium && (
               <Text style={styles.playLimit}>
                 残り {remainingPlays} 回
@@ -605,5 +662,31 @@ const styles = StyleSheet.create({
   },
   buttonPressed: {
     transform: [{ scale: 0.95 }],
+  },
+  centeredState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+    paddingHorizontal: 24,
+  },
+  stateText: {
+    color: colors.white35,
+    fontSize: 14,
+  },
+  stateError: {
+    color: '#ff6b6b',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  retryButton: {
+    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    backgroundColor: colors.primaryBgButton,
+  },
+  retryButtonText: {
+    color: colors.white,
+    fontSize: 14,
   },
 });

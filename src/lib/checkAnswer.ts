@@ -1,4 +1,4 @@
-import type { Lesson } from '../data/lessons';
+import type { Lesson } from '../types/lesson';
 
 // 比較時は , . ! ? など句読点をすべて無視する
 const PUNCTUATION =

@@ -29,8 +29,40 @@ export async function isPremiumUser(): Promise<boolean> {
   }
 }
 
+/** 開発時のみ CustomerInfo の主要フィールドをログ出力 */
+export async function logCustomerInfo(tag = 'RevenueCat'): Promise<void> {
+  if (!__DEV__) return;
+
+  try {
+    const customerInfo = await Purchases.getCustomerInfo();
+    const entitlements = Object.entries(customerInfo.entitlements.all).map(([id, e]) => ({
+      id,
+      isActive: e.isActive,
+      productIdentifier: e.productIdentifier,
+      expirationDate: e.expirationDate,
+      willRenew: e.willRenew,
+    }));
+
+    console.log(`[${tag}] CustomerInfo`, {
+      appUserId: customerInfo.originalAppUserId,
+      isPremium: typeof customerInfo.entitlements.active[PREMIUM_ENTITLEMENT] !== 'undefined',
+      activeEntitlements: Object.keys(customerInfo.entitlements.active),
+      activeSubscriptions: customerInfo.activeSubscriptions,
+      allPurchasedProductIdentifiers: customerInfo.allPurchasedProductIdentifiers,
+      latestExpirationDate: customerInfo.latestExpirationDate,
+      firstSeen: customerInfo.firstSeen,
+      requestDate: customerInfo.requestDate,
+      managementURL: customerInfo.managementURL,
+      entitlements,
+    });
+  } catch (e) {
+    console.warn(`[${tag}] Failed to fetch customer info`, e);
+  }
+}
+
 export async function presentPaywall(): Promise<boolean> {
   const paywallResult = await RevenueCatUI.presentPaywall();
+  await logCustomerInfo('RevenueCat after paywall');
 
   switch (paywallResult) {
     case PAYWALL_RESULT.PURCHASED:
