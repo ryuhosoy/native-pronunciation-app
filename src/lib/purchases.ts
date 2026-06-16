@@ -1,22 +1,15 @@
-import { Platform } from 'react-native';
 import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
 
 import { PREMIUM_ENTITLEMENT } from '../constants/subscription';
 
 const IOS_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY;
-const ANDROID_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY;
 
 export function configurePurchases(): void {
   Purchases.setLogLevel(__DEV__ ? LOG_LEVEL.VERBOSE : LOG_LEVEL.INFO);
 
-  if (Platform.OS === 'ios' && IOS_API_KEY) {
+  if (IOS_API_KEY) {
     Purchases.configure({ apiKey: IOS_API_KEY });
-    return;
-  }
-
-  if (Platform.OS === 'android' && ANDROID_API_KEY) {
-    Purchases.configure({ apiKey: ANDROID_API_KEY });
   }
 }
 
