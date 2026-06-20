@@ -43,6 +43,7 @@ import {
   playAudio,
   stopAudio,
 } from './src/lib/openaiSpeech';
+import { hideDevMenuSettings } from './src/lib/devMenu';
 
 export default function App() {
   const [lesson, setLesson] = useState<Lesson | null>(null);
@@ -93,6 +94,7 @@ export default function App() {
   }, [loadLesson]);
 
   useEffect(() => {
+    void hideDevMenuSettings();
     void configureAudio();
     configurePurchases();
     void (async () => {
