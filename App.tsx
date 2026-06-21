@@ -233,19 +233,19 @@ export default function App() {
         style={styles.flex}
         behavior="padding"
       >
-        <View style={styles.topBar}>
-          <View style={styles.topBarLeft}>
-            <Text style={styles.counter}>第 {questionNumber} 問</Text>
-            {!isPremium && (
+        {!isPremium && (
+          <View style={styles.topBar}>
+            <View style={styles.topBarLeft}>
+              <Text style={styles.counter}>第 {questionNumber} 問</Text>
               <Text style={styles.playLimit}>
                 残り {remainingPlays} 回
               </Text>
-            )}
+            </View>
+            <View style={styles.progressTrack}>
+              <Animated.View style={[styles.progressFill, progressStyle]} />
+            </View>
           </View>
-          <View style={styles.progressTrack}>
-            <Animated.View style={[styles.progressFill, progressStyle]} />
-          </View>
-        </View>
+        )}
 
         <ScrollView
           contentContainerStyle={styles.scrollContent}
