@@ -4,7 +4,7 @@
     "slug": "native-pronunciation-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/icon_1024x1024.png",
     "userInterfaceStyle": "dark",
     "ios": {
       "supportsTablet": true,
@@ -12,9 +12,6 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
     },
     "plugins": [
       "expo-audio"
