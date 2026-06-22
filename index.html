@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Native Pronunciation App のプライバシーポリシー" />
+  <title>プライバシーポリシー | Native Pronunciation App</title>
+  <style>
+    :root {
+      --bg: #0c0c14;
+      --surface: #14141f;
+      --primary: #6c63ff;
+      --primary-light: #9b93ff;
+      --text: rgba(255, 255, 255, 0.9);
+      --text-muted: rgba(255, 255, 255, 0.6);
+      --border: rgba(255, 255, 255, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Hiragino Sans",
+        "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    header {
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--primary-light);
+      background: rgba(108, 99, 255, 0.15);
+      border: 1px solid rgba(108, 99, 255, 0.25);
+      border-radius: 999px;
+      padding: 4px 12px;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: clamp(1.75rem, 5vw, 2.25rem);
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 8px;
+    }
+
+    .updated {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--white);
+      margin: 36px 0 12px;
+      padding-left: 12px;
+      border-left: 3px solid var(--primary);
+    }
+
+    p,
+    li {
+      color: var(--text-muted);
+      font-size: 0.975rem;
+    }
+
+    p + p {
+      margin-top: 12px;
+    }
+
+    ul {
+      margin: 12px 0 0 1.25rem;
+    }
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    a {
+      color: var(--primary-light);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 16px;
+    }
+
+    .card strong {
+      color: var(--text);
+    }
+
+    footer {
+      margin-top: 48px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 0.875rem;
+    }
+
+    .lang-switch {
+      margin-top: 16px;
+      font-size: 0.875rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <span class="badge">Privacy Policy</span>
+      <h1>プライバシーポリシー</h1>
+      <p class="updated">最終更新日: 2026年6月16日</p>
+      <p class="lang-switch"><a href="#english">English version below</a></p>
+    </header>
+
+    <main>
+      <p>
+        本プライバシーポリシーは、Ryuhosoy（以下「当方」）が提供する iOS アプリ
+        「Native Pronunciation App」（以下「本アプリ」）における、利用者情報の取扱いについて定めるものです。
+      </p>
+
+      <h2>1. 収集する情報</h2>
+      <p>本アプリは、アカウント登録を必要としません。当方が収集・利用する情報は以下のとおりです。</p>
+      <ul>
+        <li><strong>端末内に保存される情報:</strong> 無料プレイ回数（ローカルストレージに保存）</li>
+        <li><strong>利用者が入力する情報:</strong> 学習のための英文入力（端末内で正誤判定に使用）</li>
+        <li><strong>課金情報:</strong> App Store 経由のサブスクリプション購入・復元に関する情報（Apple および RevenueCat が処理）</li>
+      </ul>
+      <p>本アプリは、氏名・メールアドレス・位置情報・連絡先・写真などの個人情報を直接収集しません。</p>
+
+      <h2>2. 情報の利用目的</h2>
+      <ul>
+        <li>英語リスニング・発音学習機能の提供</li>
+        <li>無料利用回数の管理</li>
+        <li>プレミアム機能（サブスクリプション）の提供・管理</li>
+        <li>アプリの改善および不具合対応</li>
+      </ul>
+
+      <h2>3. 第三者サービスの利用</h2>
+      <p>本アプリは、機能提供のため以下の第三者サービスを利用します。各サービスには独自のプライバシーポリシーが適用されます。</p>
+
+      <div class="card">
+        <p><strong>OpenAI</strong></p>
+        <p>学習用英文の音声合成（Text-to-Speech）のため、問題文テキストが OpenAI API に送信されます。利用者が入力した回答文は OpenAI に送信されません。</p>
+        <p><a href="https://openai.com/policies/privacy-policy" target="_blank" rel="noopener noreferrer">OpenAI プライバシーポリシー</a></p>
+      </div>
+
+      <div class="card">
+        <p><strong>Supabase</strong></p>
+        <p>学習問題データの取得のため、Supabase のデータベースに接続します。利用者を特定する情報は送信しません。</p>
+        <p><a href="https://supabase.com/privacy" target="_blank" rel="noopener noreferrer">Supabase プライバシーポリシー</a></p>
+      </div>
+
+      <div class="card">
+        <p><strong>RevenueCat / Apple App Store</strong></p>
+        <p>サブスクリプションの購入・管理のため、RevenueCat および Apple の決済システムを利用します。支払い情報は Apple が処理し、当方がクレジットカード情報等を直接取得することはありません。</p>
+        <p>
+          <a href="https://www.revenuecat.com/privacy" target="_blank" rel="noopener noreferrer">RevenueCat プライバシーポリシー</a><br />
+          <a href="https://www.apple.com/legal/privacy/" target="_blank" rel="noopener noreferrer">Apple プライバシーポリシー</a>
+        </p>
+      </div>
+
+      <h2>4. 情報の保存</h2>
+      <ul>
+        <li>プレイ回数は利用者の端末内（AsyncStorage）にのみ保存されます。</li>
+        <li>音声データは端末のキャッシュに一時保存される場合があります。</li>
+        <li>当方のサーバーに利用者のアカウント情報や学習履歴を保存することはありません。</li>
+      </ul>
+
+      <h2>5. 情報の共有</h2>
+      <p>
+        当方は、法令に基づく場合を除き、利用者の情報を第三者に販売・貸与・共有することはありません。
+        上記「第三者サービスの利用」に記載の範囲で、サービス提供に必要な情報が各事業者に送信される場合があります。
+      </p>
+
+      <h2>6. 児童のプライバシー</h2>
+      <p>
+        本アプリは13歳未満の児童を対象としておらず、13歳未満の児童から意図的に個人情報を収集することはありません。
+      </p>
+
+      <h2>7. 利用者の権利</h2>
+      <p>
+        端末内に保存されたデータ（プレイ回数など）は、アプリを削除することで消去できます。
+        サブスクリプションの管理・解約は、iOS の「設定」→「Apple ID」→「サブスクリプション」から行えます。
+      </p>
+
+      <h2>8. プライバシーポリシーの変更</h2>
+      <p>
+        当方は、必要に応じて本ポリシーを変更することがあります。変更後のポリシーは、本ページに掲載した時点で効力を生じます。
+      </p>
+
+      <h2>9. お問い合わせ</h2>
+      <p>
+        本プライバシーポリシーに関するお問い合わせは、以下よりご連絡ください。
+      </p>
+      <p>
+        GitHub:
+        <a href="https://github.com/ryuhosoy/native-pronunciation-app/issues" target="_blank" rel="noopener noreferrer">
+          ryuhosoy/native-pronunciation-app Issues
+        </a>
+      </p>
+
+      <h2 id="english">Privacy Policy (English)</h2>
+      <p>
+        This Privacy Policy describes how Ryuhosoy ("we", "us") handles information in the
+        iOS app "Native Pronunciation App" (the "App").
+      </p>
+
+      <h2>Information We Collect</h2>
+      <p>The App does not require account registration. We may process:</p>
+      <ul>
+        <li><strong>On-device data:</strong> free play count stored locally on your device</li>
+        <li><strong>User input:</strong> English text you type for learning (checked on-device)</li>
+        <li><strong>Subscription data:</strong> purchase and entitlement status via Apple App Store and RevenueCat</li>
+      </ul>
+      <p>We do not directly collect your name, email, location, contacts, or photos.</p>
+
+      <h2>Third-Party Services</h2>
+      <ul>
+        <li><strong>OpenAI:</strong> lesson text is sent for text-to-speech. Your typed answers are not sent to OpenAI.</li>
+        <li><strong>Supabase:</strong> used to fetch lesson content. No user-identifying data is sent.</li>
+        <li><strong>RevenueCat / Apple:</strong> used for subscription management. Payment details are handled by Apple.</li>
+      </ul>
+
+      <h2>Data Retention</h2>
+      <p>
+        Play counts are stored only on your device. We do not store user accounts or learning history on our servers.
+        You can delete on-device data by uninstalling the App.
+      </p>
+
+      <h2>Children</h2>
+      <p>The App is not directed to children under 13, and we do not knowingly collect personal information from them.</p>
+
+      <h2>Contact</h2>
+      <p>
+        For privacy-related inquiries, please contact us via
+        <a href="https://github.com/ryuhosoy/native-pronunciation-app/issues" target="_blank" rel="noopener noreferrer">
+          GitHub Issues
+        </a>.
+      </p>
+    </main>
+
+    <footer>
+      <p>&copy; 2026 Ryuhosoy. All rights reserved.</p>
+      <p>Bundle ID: com.ryuhosoy.nativepronunciationapp</p>
+    </footer>
+  </div>
+</body>
+</html>
