@@ -59,6 +59,7 @@ export default function App() {
   const [isPremium, setIsPremium] = useState(false);
   const [playCount, setPlayCount] = useState(0);
   const inputRef = useRef<TextInput>(null);
+  const hasCountedCurrentLessonRef = useRef(false);
   const progressWidth = useSharedValue(0);
 
   const progressPercent = phase === 'listen' ? 33 : phase === 'input' ? 66 : 100;
@@ -94,6 +95,10 @@ export default function App() {
   }, [loadLesson]);
 
   useEffect(() => {
+    hasCountedCurrentLessonRef.current = false;
+  }, [lesson?.id]);
+
+  useEffect(() => {
     void hideDevMenuSettings();
     void configureAudio();
     configurePurchases();
@@ -121,7 +126,9 @@ export default function App() {
 
   const speak = useCallback(async () => {
     if (!lesson || isLoadingSpeech || isPlaying) return;
-    if (hasReachedPlayLimit) {
+
+    const isFirstPlayOfLesson = !hasCountedCurrentLessonRef.current;
+    if (!isPremium && hasReachedPlayLimit && isFirstPlayOfLesson) {
       openPaywall();
       return;
     }
@@ -138,9 +145,10 @@ export default function App() {
         async () => {
           setIsLoadingSpeech(false);
           setIsPlaying(true);
-          if (!isPremium) {
+          if (!isPremium && !hasCountedCurrentLessonRef.current) {
             const count = await incrementPlayCount();
             setPlayCount(count);
+            hasCountedCurrentLessonRef.current = true;
           }
         },
         () => {
